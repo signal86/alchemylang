@@ -1,0 +1,46 @@
+// Component file
+
+components {
+    create text = textIn // textIn being a parameter
+        html
+            <p style="{mainOpt}">{textIn}</p>
+        end
+        modifiers
+            underline <arg1>
+                compilation // fires on compilation, with the actual element content being set to "original", view example in redirect_to modifier
+                    if arg1 == true
+                        mainOpt += text-decoration: underline;
+                    elif arg1 == false
+                        mainOpt += text-decoration: none;
+                    end
+                end
+                listeners // fires with "on"s, element id is immediately set to "ID" variable
+                    if arg1 == true
+                        js
+                            document.getElementById("{ID}").style.text-decoration = "underline";
+                        end
+                    elif arg1 == false
+                        js
+                            document.getElementById("{ID}").style.text-decoration = "underline";
+                        end
+                    else
+                        warnFor improper usage of underline modifier
+                    end
+                end
+            end
+        end
+    end
+}
+
+global_modifiers { // for global modifiers
+    create redirect_to = route // route as a parameter
+        compilation // element html content being set to "original"
+            <a href="{route}">{original}</a>
+        end
+        listeners // again, element id is set to "ID" variable
+            js
+                $("#{ID}").wrap("<a href=\"{route}\"></a>"); // jQuery code
+            end
+        end
+    end
+}
