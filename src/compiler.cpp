@@ -6,26 +6,36 @@
 
 class ErrorHandler {
     private:
-        std::vector<std::pair<int, std::array<std::string, 2>>> errors;
+        struct Error {
+            int lineNumber;
+            std::string error;
+            std::string line;
+        };
+        std::vector<Error> errors;
         bool problem = false;
         std::string fileName;
         std::string startingText;
+
     public:
         ErrorHandler(std::string startingTextIn, std::string fileNameIn) {
             startingText = startingTextIn;
             fileName = fileNameIn;
         }
-        void addError(int lineNumber, std::string error, std::string line) {
-            errors.push_back(std::make_pair(
-                lineNumber,
-                std::array<std::string, 2> {error, line}
-            ));            
+
+        void addError(int lineNumberIn, std::string errorIn, std::string lineIn) {
+            Error error = {
+                lineNumberIn,
+                errorIn,
+                lineIn
+            };
+            errors.push_back(error);
             problem = true;
         }
+
         bool catcher() {
             if (problem) {
-                for (std::pair<int, std::array<std::string, 2>>& error : errors) {
-                    std::cout << startingText << " on " << fileName << ":" << std::get<int>(error) << " -> \"" << std::get<std::array<std::string, 2>>(error)[1] << "\" -> " << std::get<std::array<std::string, 2>>(error)[0] << "\n";
+                for (Error error : errors) {
+                    std::cout << startingText << " on " << fileName << ":" << error.lineNumber << " -> \"" << error.line << "\" -> " << error.error << "\n";
                 }
                 return false;
             } else {
