@@ -4,7 +4,7 @@ listener and compilation required in component modifier definition
 require jQuery
 
 # alchemylang
-a unique language framework for designing static webpages with minimal clutter, written in Elixir
+a unique language framework for designing static webpages with minimal clutter, written in ~~Elixir~~ C++
 TODO: move all of this to docs and a tutorial page within said docs
 
 
