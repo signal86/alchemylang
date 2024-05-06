@@ -262,7 +262,17 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
         // adding variables to scope
         if (variableWork.variableName != "") variableScope.push_back(variableWork);
 
-        // adding page settings
+        // page_title mini-tokenization
+        if (changingPageSetting == "page_title") {
+            // if (no "text" key) {
+                pageSettingsInsert["text"] = "Alchemy " + std::to_string(VERSION);
+            // } else {
+                // pageSettingsInsert["text"] = value;
+            // }
+        }
+
+        // adding page settings <-- should work on all page settings if they're set up
+        if (changingPageSetting != "") pageSettings[changingPageSetting] = pageSettingsInsert;
 
         // // dump words on line to terminal
         // for (int i = 0; i < wordList.size(); i++) {

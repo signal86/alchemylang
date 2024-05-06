@@ -31,7 +31,8 @@ meta { // architecture block
     // Reserved keywords dont activate in page settings
     // You cannot define page settings they're only defined in the compiler
     // These can be expanded outward like python where there's newlines inside the array
-    page_title: [text: "", signal_period: 5] // Page title is always a signal variable
+    // you need strings in the arrays because of commas
+    page_title: [text: "page title text here", signal_period: 5] // Page title is always a signal variable
         /*
         Default settings for page_title:
         text: "Alchemy {ver}",

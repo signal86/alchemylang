@@ -2,6 +2,8 @@
 #include <fstream>
 #include "compiler.cpp"
 
+float VERSION = 0.1;
+
 int main(int argc, char* argv[]) {
     // std::vector<std::string> args(argv, argv + argc);
     // std::cout << "argc: " << argc << "\n\n"; 
