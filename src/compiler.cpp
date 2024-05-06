@@ -218,7 +218,7 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
                     }
                 }
                 else {
-                    errors.addError(std::distance(dataCopy.begin(), i) + 1, "data " + wordList[v] + " not in scope", line);
+                    errors.addError(std::distance(dataCopy.begin(), i) + 1, "data not in scope", line);
                 }
             }
         }
