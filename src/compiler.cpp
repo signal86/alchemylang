@@ -50,10 +50,34 @@ class ErrorHandler {
         }
 };
 
+struct Variable {
+    bool global = false;
+    bool constant = false;
+    bool varUsed = false;
+    bool signal = false;
+    bool initialized = false;
+    std::string variableName = "";
+    std::string value = "";
+};
+
 bool lexer(std::string fileName, std::vector<std::string> *data) {
     std::vector<std::string> dataCopy = *data;
     ErrorHandler errors("lexizer/syntax error", fileName);
 
+    std::array<std::string, 11> reservedKeywords = {
+        "global",
+        "var",
+        "const",
+        "signal",
+        "meta",
+        "view",
+        "create",
+        "redirect",
+        "on",
+        "end",
+        "if"
+    };
+    // file-level variables
     bool commenting = false;
     int blockNum = 0;
     std::string architecture = "none";
@@ -73,6 +97,10 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
             wordList.push_back(splitToken);
         }
 
+        // line-level variables
+        bool settingVariable = false;
+        bool plaintext = false;
+        Variable variableWork;
         // loop all words in the line and search through word values
         for (int v = 0; v < wordList.size(); v++) {
             // comments
@@ -80,16 +108,34 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
                 v = wordList.size() - 1;
             }
 
-            else if (wordList[v] == "/*") {
+            else if (wordList[v].rfind("/*", 0) == 0) {
                 commenting = true;
             }
 
-            else if (wordList[v] == "*/") {
+            else if (wordList[v].rfind("*/") != std::string::npos) {
                 if (commenting) commenting = false;
                 else errors.addError(std::distance(dataCopy.begin(), i) + 1, "comment closed which was never opened", line);
             }
 
-            if (commenting) continue;
+            else if (commenting) continue;
+
+            else if (wordList[v] == "global" || wordList[v] == "signal" || wordList[v] == "var" || wordList[v] == "const") {
+                if (v != 0 && settingVariable == false) {
+                    errors.addError(std::distance(dataCopy.begin(), i) + 1, "reserved keyword \"" + wordList[v] + "\" used outside of variable declaration", line);
+                } else if (settingVariable == true || v == 0) {
+                    settingVariable = true;
+                    if (wordList[v] == "global") variableWork.global = true;
+                    else if (wordList[v] == "signal") variableWork.signal = true;
+                    else if (wordList[v] == "const") {
+                        if (variableWork.varUsed) errors.addError(std::distance(dataCopy.begin(), i) + 1, "variable declared with both const and var", line);
+                        else variableWork.constant = true;
+                    }
+                    else if (wordList[v] == "var") {
+                        if (variableWork.constant) errors.addError(std::distance(dataCopy.begin(), i) + 1, "variable declared with both const and var", line);
+                        else variableWork.varUsed = true;
+                    }
+                }
+            }
 
             // architecture blocks
             else if (wordList[v] == "meta" || wordList[v] == "view" || wordList[v] == "components" || wordList[v] == "global_modifiers") {
@@ -122,7 +168,7 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
                         }
                     }
                 }
-                // architecture block never opend
+                // architecture block never opened
                 else errors.addError(std::distance(dataCopy.begin(), i) + 1, "architecture block not opened", line);
                 if (!found) errors.addError(std::distance(dataCopy.begin(), i) + 1, "architecture block left incomplete", line);
             }
@@ -134,6 +180,32 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
                     blockNum--;
                 }
             }
+
+            // un-reserved/plaintext work
+            else {
+                // variable declaration
+                if (settingVariable) {
+                    if (variableWork.variableName == "") {
+                        variableWork.variableName = wordList[v];
+                    } else {
+                        if (!variableWork.initialized && wordList[v] == "=") {
+                            variableWork.initialized = true;
+                        }
+                        else if (variableWork.initialized) {
+                            variableWork.value += wordList[v];
+                        }
+                        else {
+                            errors.addError(std::distance(dataCopy.begin(), i) + 1, "variable setting failed", line);
+                        }
+                    }
+                }
+            }
+        }
+
+        // post-line processing
+        // dealing with uninitialized global variables
+        if (variableWork.constant && !variableWork.initialized) {
+            errors.addError(std::distance(dataCopy.begin(), i) + 1, "constant variables cannot be left uninitialized", line);
         }
 
         // // dump words on line to terminal
