@@ -106,10 +106,12 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
         bool architectureInline = false; // for {
         bool settingVariable = false;
         bool plaintext = false;
+        std::string plaintextString = "";
         Variable variableWork;
         std::map<std::string, std::string> pageSettingsInsert;
         std::string changingPageSetting = "";
         // loop all words in the line and search through word values
+        // TODO: plaintext should overwrite existing string
         for (int v = 0; v < wordList.size(); v++) {
             // comments
             if (wordList[v] == "//") {
@@ -126,6 +128,15 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
             }
 
             else if (commenting) continue;
+
+            // plaintext handler 1
+            else if (plaintext) {
+                for (int j = v; j < wordList.size(); j++) {
+                    if (j != wordList.size() - 2) plaintextString += wordList[j] + " ";
+                    else plaintextString += wordList[j];
+                }
+                v = wordList.size();
+            }
 
             // variables
             else if ((architecture == "global" || architecture == "meta") && (wordList[v] == "global" || wordList[v] == "signal" || wordList[v] == "var" || wordList[v] == "const")) {
@@ -200,12 +211,15 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
             }
 
             // page settings
+            // right now, only allows for one-line variable setting. In the future, it may be most efficient and scalable to allow for implementation of data from other documents as a GLOBAL preprocessor variable, which can be called
             else if (architecture == "meta" && wordList[v] == "page_title:") {
                 if (changingPageSetting != "") {
                     changingPageSetting = "page_title";
-                } else {
-                    // fix: what if the user typed page_title: ? <-- plaintext variable would fix this
-                    errors.addError(lineNumber, "cannot configure page setting within a page setting", line);
+                    if (wordList.size() > v + 2 && wordList[v + 1] == "=") {
+                        plaintext = true;
+                    } else {
+                        errors.addError(lineNumber, "page setting improperly defined", line);
+                    }
                 }
             }
 
@@ -214,10 +228,10 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
                 v = wordList.size();
             }
 
-
-            // un-reserved/plaintext work
+            // un-reserved keyword handler
             else {
                 // variable declaration
+                // This probably needs a rewrite into moving toward the plaintext handler defined above
                 if (settingVariable) {
                     if (variableWork.variableName == "") {
                         variableWork.variableName = wordList[v];
@@ -244,8 +258,11 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
         if (variableWork.constant && !variableWork.initialized) {
             errors.addError(lineNumber, "constant variables cannot be left uninitialized", line);
         }
+
         // adding variables to scope
         if (variableWork.variableName != "") variableScope.push_back(variableWork);
+
+        // adding page settings
 
         // // dump words on line to terminal
         // for (int i = 0; i < wordList.size(); i++) {
