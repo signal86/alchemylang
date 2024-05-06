@@ -4,6 +4,8 @@
 #include <array>
 #include <fstream>
 #include <string>
+#include <algorithm>
+#include <sstream>
 
 class ErrorHandler {
     private:
@@ -38,7 +40,6 @@ class ErrorHandler {
             if (!problem) return true;
 
             for (Error error : errors) {
-                // std::cout << startingText << " on " << fileName << ":" << error.lineNumber << " -> \"" << error.line << "\" -> " << error.error << "\n";
                 std::printf(
                     "%s on %s:%d -> \"%s\" -> %s\n",
                     startingText.c_str(), fileName.c_str(), error.lineNumber, error.line.c_str(), error.error.c_str()
@@ -50,12 +51,33 @@ class ErrorHandler {
 };
 
 bool lexer(std::string fileName, std::vector<std::string> *data) {
+    std::vector<std::string> dataCopy = *data;
     ErrorHandler errors("lexizer/syntax error", fileName);
-    errors.addError(3, "symbol not found", "example line one");
-    errors.addError(6, "segfault", "example line two");
-    errors.addError(13, "what the sigma", "example line three");
+    // errors.addError(3, "symbol not found", "example line one");
 
-    //
+    std::string architecture = "none";
+    for (auto i = dataCopy.begin(); i != dataCopy.end(); i++) {
+
+        // beginning whitespace trim
+        dataCopy[std::distance(dataCopy.begin(), i)] =
+            (dataCopy[std::distance(dataCopy.begin(), i)].find_first_not_of(" \n\r\t\f\v") == std::string::npos) ? "" :
+            dataCopy[std::distance(dataCopy.begin(), i)].substr(dataCopy[std::distance(dataCopy.begin(), i)].find_first_not_of(" \n\r\t\f\v"));
+        std::string line = dataCopy[std::distance(dataCopy.begin(), i)];
+
+        // separate line into words
+        std::string splitToken;
+        std::stringstream lineStream(line);
+        std::vector<std::string> wordList;
+        while (getline(lineStream, splitToken, ' ')) {
+            wordList.push_back(splitToken);
+        }
+
+        // // dump lines to terminal
+        // for (int i = 0; i < wordList.size(); i++) {
+        //     std::cout << ">" << wordList[i] << "<" << std::endl;
+        // }
+        // std::cout << "line " << std::distance(dataCopy.begin(), i) + 1 << ": " << *i << "\n";
+    }
 
     return errors.catcher();
 }
@@ -70,7 +92,7 @@ bool compile(std::string fileName) {
             data.push_back(line);
         }
         bool valid = true;
-        valid = lexer(fileName, &data);
+        if (!lexer(fileName, &data)) return false;
         raw.close();
         return valid;
     } else {
