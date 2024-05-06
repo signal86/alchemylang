@@ -48,6 +48,8 @@
         "ratio": "cpp",
         "iomanip": "cpp",
         "sstream": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "map": "cpp",
+        "optional": "cpp"
     }
 }

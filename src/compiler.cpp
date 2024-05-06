@@ -6,6 +6,7 @@
 #include <string>
 #include <algorithm>
 #include <sstream>
+#include <map>
 
 class ErrorHandler {
     private:
@@ -80,10 +81,12 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
     };
     // file-level variables
     std::vector<Variable> variableScope; // scope
+    std::map<std::string, std::map<std::string, std::string>> pageSettings; // settings of the page: [settingName: [setting: settingValue]]
     bool commenting = false;
     int blockNum = 0;
     std::string architecture = "none";
     for (auto i = dataCopy.begin(); i != dataCopy.end(); i++) {
+        int lineNumber = std::distance(dataCopy.begin(), i) + 1;
 
         // beginning whitespace trim
         std::string line = dataCopy[std::distance(dataCopy.begin(), i)];
@@ -104,6 +107,8 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
         bool settingVariable = false;
         bool plaintext = false;
         Variable variableWork;
+        std::map<std::string, std::string> pageSettingsInsert;
+        std::string changingPageSetting = "";
         // loop all words in the line and search through word values
         for (int v = 0; v < wordList.size(); v++) {
             // comments
@@ -117,7 +122,7 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
 
             else if (wordList[v].rfind("*/") != std::string::npos) {
                 if (commenting) commenting = false;
-                else errors.addError(std::distance(dataCopy.begin(), i) + 1, "comment closed which was never opened", line);
+                else errors.addError(lineNumber, "comment closed which was never opened", line);
             }
 
             else if (commenting) continue;
@@ -125,7 +130,7 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
             // variables
             else if ((architecture == "global" || architecture == "meta") && (wordList[v] == "global" || wordList[v] == "signal" || wordList[v] == "var" || wordList[v] == "const")) {
                 if (v != 0 && settingVariable == false) {
-                    errors.addError(std::distance(dataCopy.begin(), i) + 1, "reserved keyword \"" + wordList[v] + "\" used outside of variable declaration", line);
+                    errors.addError(lineNumber, "reserved keyword \"" + wordList[v] + "\" used outside of variable declaration", line);
                 } else if (settingVariable == true || v == 0) {
                     settingVariable = true;
                     variableWork.scope = architecture;
@@ -135,11 +140,11 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
                     }
                     else if (wordList[v] == "signal") variableWork.signal = true;
                     else if (wordList[v] == "const") {
-                        if (variableWork.varUsed) errors.addError(std::distance(dataCopy.begin(), i) + 1, "variable declared with both const and var", line);
+                        if (variableWork.varUsed) errors.addError(lineNumber, "variable declared with both const and var", line);
                         else variableWork.constant = true;
                     }
                     else if (wordList[v] == "var") {
-                        if (variableWork.constant) errors.addError(std::distance(dataCopy.begin(), i) + 1, "variable declared with both const and var", line);
+                        if (variableWork.constant) errors.addError(lineNumber, "variable declared with both const and var", line);
                         else variableWork.varUsed = true;
                     }
                 }
@@ -148,7 +153,7 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
             // architecture blocks
             else if (wordList[v] == "meta" || wordList[v] == "view" || wordList[v] == "components" || wordList[v] == "global_modifiers") {
                 if (architecture == "none") architecture = wordList[v];
-                else errors.addError(std::distance(dataCopy.begin(), i) + 1, "overlapping architecture blocks", line);
+                else errors.addError(lineNumber, "overlapping architecture blocks", line);
                 int tempBlockNum = blockNum;
                 bool found = false;
                 // next character is a {
@@ -178,19 +183,29 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
                     }
                 }
                 // architecture block never opened
-                else errors.addError(std::distance(dataCopy.begin(), i) + 1, "architecture block not opened", line);
-                if (!found) errors.addError(std::distance(dataCopy.begin(), i) + 1, "architecture block left incomplete", line);
+                else errors.addError(lineNumber, "architecture block not opened", line);
+                if (!found) errors.addError(lineNumber, "architecture block left incomplete", line);
             }
 
             else if (wordList[v] == "{") {
-                if (!architectureInline) errors.addError(std::distance(dataCopy.begin(), i) + 1, "architecture block not found", line);
+                if (!architectureInline) errors.addError(lineNumber, "architecture block not found", line);
             }
 
             else if (wordList[v] == "}") {
-                if (architecture == "none") errors.addError(std::distance(dataCopy.begin(), i) + 1, "architecture block not found", line);
+                if (architecture == "none") errors.addError(lineNumber, "architecture block not found", line);
                 else {
                     architecture = "none";
                     blockNum--;
+                }
+            }
+
+            // page settings
+            else if (architecture == "meta" && wordList[v] == "page_title:") {
+                if (changingPageSetting != "") {
+                    changingPageSetting = "page_title";
+                } else {
+                    // fix: what if the user typed page_title: ? <-- plaintext variable would fix this
+                    errors.addError(lineNumber, "cannot configure page setting within a page setting", line);
                 }
             }
 
@@ -198,6 +213,7 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
             else if (wordList[v].rfind("#", 0) == 0) {
                 v = wordList.size();
             }
+
 
             // un-reserved/plaintext work
             else {
@@ -213,12 +229,12 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
                             variableWork.value += wordList[v];
                         }
                         else {
-                            errors.addError(std::distance(dataCopy.begin(), i) + 1, "variable setting failed", line);
+                            errors.addError(lineNumber, "variable setting failed", line);
                         }
                     }
                 }
                 else {
-                    errors.addError(std::distance(dataCopy.begin(), i) + 1, "data not in scope", line);
+                    errors.addError(lineNumber, "data not in scope", line);
                 }
             }
         }
@@ -226,7 +242,7 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
         // post-line processing
         // dealing with uninitialized global variables
         if (variableWork.constant && !variableWork.initialized) {
-            errors.addError(std::distance(dataCopy.begin(), i) + 1, "constant variables cannot be left uninitialized", line);
+            errors.addError(lineNumber, "constant variables cannot be left uninitialized", line);
         }
         // adding variables to scope
         if (variableWork.variableName != "") variableScope.push_back(variableWork);
@@ -236,7 +252,7 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
         //     std::cout << ">" << wordList[i] << "<" << std::endl;
         // }
         // // dump lines to terminal
-        // std::cout << "line " << std::distance(dataCopy.begin(), i) + 1 << ": " << *i << "\n";
+        // std::cout << "line " << lineNumber << ": " << *i << "\n";
     }
 
     return errors.catcher();
