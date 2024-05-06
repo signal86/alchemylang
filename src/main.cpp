@@ -1,10 +1,12 @@
 #include <iostream>
 #include <fstream>
 #include "compiler.cpp"
+#include "common.h"
 
-float VERSION = 0.1;
+float VERSION;
 
 int main(int argc, char* argv[]) {
+    VERSION = 0.1;
     // std::vector<std::string> args(argv, argv + argc);
     // std::cout << "argc: " << argc << "\n\n"; 
     // for (std::string& arg : args) {

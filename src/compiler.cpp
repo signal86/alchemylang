@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <sstream>
 #include <map>
+#include "common.h"
 
 class ErrorHandler {
     private:
@@ -113,6 +114,7 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
         // loop all words in the line and search through word values
         // TODO: plaintext should overwrite existing string
         for (int v = 0; v < wordList.size(); v++) {
+            // std::cout << architecture << " -> " << wordList[v] << std::endl;
             // comments
             if (wordList[v] == "//") {
                 v = wordList.size();
@@ -132,10 +134,11 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
             // plaintext handler 1
             else if (plaintext) {
                 for (int j = v; j < wordList.size(); j++) {
-                    if (j != wordList.size() - 2) plaintextString += wordList[j] + " ";
-                    else plaintextString += wordList[j];
+                    if (wordList[j] == "//") break;
+                    plaintextString += wordList[j] + " ";
                 }
                 v = wordList.size();
+                plaintextString = plaintextString.substr(0, plaintextString.length() - 1);
             }
 
             // variables
@@ -212,14 +215,10 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
 
             // page settings
             // right now, only allows for one-line variable setting. In the future, it may be most efficient and scalable to allow for implementation of data from other documents as a GLOBAL preprocessor variable, which can be called
-            else if (architecture == "meta" && wordList[v] == "page_title:") {
-                if (changingPageSetting != "") {
-                    changingPageSetting = "page_title";
-                    if (wordList.size() > v + 2 && wordList[v + 1] == "=") {
-                        plaintext = true;
-                    } else {
-                        errors.addError(lineNumber, "page setting improperly defined", line);
-                    }
+            else if (architecture == "meta" && (wordList[v] == "page_title:" || wordList[v] == "search_tags:" || wordList[v] == "page_background:")) {
+                if (changingPageSetting == "") {
+                    changingPageSetting = wordList[v].substr(0, wordList[v].length() - 1);
+                    plaintext = true;
                 }
             }
 
@@ -262,12 +261,23 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
         // adding variables to scope
         if (variableWork.variableName != "") variableScope.push_back(variableWork);
 
-        // page_title mini-tokenization
+        // semi-tokenizing settings (thisll end up embedding the token maps)
+        if (changingPageSetting != "") {
+            if (plaintextString[0] == '[' && plaintextString.substr(plaintextString.length() - 1, 1) == "]") {
+                plaintextString = plaintextString.substr(1, plaintextString.length() - 2);
+                int spacing = 0;
+                bool inString = false;
+                for (int v = 0; v < plaintextString.length(); v++) {
+                    if (plaintextString[v] == ' ') spacing++;
+                        
+                }
+            }
+        }
+
+        // page_title additions
         if (changingPageSetting == "page_title") {
             // if (no "text" key) {
                 pageSettingsInsert["text"] = "Alchemy " + std::to_string(VERSION);
-            // } else {
-                // pageSettingsInsert["text"] = value;
             // }
         }
 
