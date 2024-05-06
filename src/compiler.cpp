@@ -54,6 +54,7 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
     std::vector<std::string> dataCopy = *data;
     ErrorHandler errors("lexizer/syntax error", fileName);
 
+    bool commenting = false;
     int blockNum = 0;
     std::string architecture = "none";
     for (auto i = dataCopy.begin(); i != dataCopy.end(); i++) {
@@ -74,8 +75,24 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
 
         // loop all words in the line and search through word values
         for (int v = 0; v < wordList.size(); v++) {
+            // comments
+            if (wordList[v] == "//") {
+                v = wordList.size() - 1;
+            }
+
+            else if (wordList[v] == "/*") {
+                commenting = true;
+            }
+
+            else if (wordList[v] == "*/") {
+                if (commenting) commenting = false;
+                else errors.addError(std::distance(dataCopy.begin(), i) + 1, "comment closed which was never opened", line);
+            }
+
+            if (commenting) continue;
+
             // architecture blocks
-            if (wordList[v] == "meta" || wordList[v] == "view" || wordList[v] == "components" || wordList[v] == "global_modifiers") {
+            else if (wordList[v] == "meta" || wordList[v] == "view" || wordList[v] == "components" || wordList[v] == "global_modifiers") {
                 if (architecture == "none") architecture = wordList[v];
                 else errors.addError(std::distance(dataCopy.begin(), i) + 1, "overlapping architecture blocks", line);
                 int tempBlockNum = blockNum;
@@ -116,10 +133,6 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
                     architecture = "none";
                     blockNum--;
                 }
-            }
-
-            else if (wordList[v] == "//") {
-                v = wordList.size() - 1;
             }
         }
 
