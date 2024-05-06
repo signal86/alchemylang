@@ -59,10 +59,10 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
     for (auto i = dataCopy.begin(); i != dataCopy.end(); i++) {
 
         // beginning whitespace trim
-        dataCopy[std::distance(dataCopy.begin(), i)] =
-            (dataCopy[std::distance(dataCopy.begin(), i)].find_first_not_of(" \n\r\t\f\v") == std::string::npos) ? "" :
-            dataCopy[std::distance(dataCopy.begin(), i)].substr(dataCopy[std::distance(dataCopy.begin(), i)].find_first_not_of(" \n\r\t\f\v"));
         std::string line = dataCopy[std::distance(dataCopy.begin(), i)];
+        line =
+            (line.find_first_not_of(" \n\r\t\f\v") == std::string::npos) ? "" :
+            line.substr(line.find_first_not_of(" \n\r\t\f\v"));
 
         // separate line into words
         std::string splitToken;
