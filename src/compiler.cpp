@@ -41,7 +41,7 @@ class ErrorHandler {
 
             for (Error error : errors) {
                 std::printf(
-                    "%s on %s:%d -> \"%s\" -> %s\n",
+                    "%s on %s:%d ->\n\t\t\"%s\"\n\t-> %s\n",
                     startingText.c_str(), fileName.c_str(), error.lineNumber, error.line.c_str(), error.error.c_str()
                 );
             }
