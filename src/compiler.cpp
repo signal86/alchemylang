@@ -58,6 +58,7 @@ struct Variable {
     bool initialized = false;
     std::string variableName = "";
     std::string value = "";
+    std::string scope = "";
 };
 
 bool lexer(std::string fileName, std::vector<std::string> *data) {
@@ -78,6 +79,7 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
         "if"
     };
     // file-level variables
+    std::vector<Variable> variableScope; // scope
     bool commenting = false;
     int blockNum = 0;
     std::string architecture = "none";
@@ -98,6 +100,7 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
         }
 
         // line-level variables
+        bool architectureInline = false; // for {
         bool settingVariable = false;
         bool plaintext = false;
         Variable variableWork;
@@ -105,7 +108,7 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
         for (int v = 0; v < wordList.size(); v++) {
             // comments
             if (wordList[v] == "//") {
-                v = wordList.size() - 1;
+                v = wordList.size();
             }
 
             else if (wordList[v].rfind("/*", 0) == 0) {
@@ -119,12 +122,17 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
 
             else if (commenting) continue;
 
-            else if (wordList[v] == "global" || wordList[v] == "signal" || wordList[v] == "var" || wordList[v] == "const") {
+            // variables
+            else if ((architecture == "global" || architecture == "meta") && (wordList[v] == "global" || wordList[v] == "signal" || wordList[v] == "var" || wordList[v] == "const")) {
                 if (v != 0 && settingVariable == false) {
                     errors.addError(std::distance(dataCopy.begin(), i) + 1, "reserved keyword \"" + wordList[v] + "\" used outside of variable declaration", line);
                 } else if (settingVariable == true || v == 0) {
                     settingVariable = true;
-                    if (wordList[v] == "global") variableWork.global = true;
+                    variableWork.scope = architecture;
+                    if (wordList[v] == "global") {
+                        variableWork.global = true;
+                        variableWork.scope = "global";
+                    }
                     else if (wordList[v] == "signal") variableWork.signal = true;
                     else if (wordList[v] == "const") {
                         if (variableWork.varUsed) errors.addError(std::distance(dataCopy.begin(), i) + 1, "variable declared with both const and var", line);
@@ -145,6 +153,7 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
                 bool found = false;
                 // next character is a {
                 if (v + 1 < wordList.size() && wordList[v + 1] == "{") {
+                    architectureInline = true;
                     // reverse through all lines to find the opposite "}"
                     for (int j = dataCopy.size() - 1; j > 0; j--) {
                         // redo separation of lines into words
@@ -173,12 +182,21 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
                 if (!found) errors.addError(std::distance(dataCopy.begin(), i) + 1, "architecture block left incomplete", line);
             }
 
+            else if (wordList[v] == "{") {
+                if (!architectureInline) errors.addError(std::distance(dataCopy.begin(), i) + 1, "architecture block not found", line);
+            }
+
             else if (wordList[v] == "}") {
                 if (architecture == "none") errors.addError(std::distance(dataCopy.begin(), i) + 1, "architecture block not found", line);
                 else {
                     architecture = "none";
                     blockNum--;
                 }
+            }
+
+            // preprocessors
+            else if (wordList[v].rfind("#", 0) == 0) {
+                v = wordList.size();
             }
 
             // un-reserved/plaintext work
@@ -199,6 +217,9 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
                         }
                     }
                 }
+                else {
+                    errors.addError(std::distance(dataCopy.begin(), i) + 1, "data " + wordList[v] + " not in scope", line);
+                }
             }
         }
 
@@ -207,6 +228,8 @@ bool lexer(std::string fileName, std::vector<std::string> *data) {
         if (variableWork.constant && !variableWork.initialized) {
             errors.addError(std::distance(dataCopy.begin(), i) + 1, "constant variables cannot be left uninitialized", line);
         }
+        // adding variables to scope
+        if (variableWork.variableName != "") variableScope.push_back(variableWork);
 
         // // dump words on line to terminal
         // for (int i = 0; i < wordList.size(); i++) {
