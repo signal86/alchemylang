@@ -29,7 +29,7 @@ components {
                 end
             end
         end
-    end
+    end)
 }
 
 global_modifiers { // for global modifiers
@@ -42,5 +42,5 @@ global_modifiers { // for global modifiers
                 $("#{ID}").wrap("<a href=\"{route}\"></a>"); // jQuery code
             end
         end
-    end
+    end)
 }

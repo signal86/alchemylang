@@ -142,7 +142,7 @@ bool lexizer(std::string fileName, std::vector<std::string> *data) {
             }
 
             // variables
-            else if ((architecture == "global" || architecture == "meta") && (wordList[v] == "global" || wordList[v] == "signal" || wordList[v] == "var" || wordList[v] == "const")) {
+            else if ((architecture == "view" || architecture == "meta") && (wordList[v] == "global" || wordList[v] == "signal" || wordList[v] == "var" || wordList[v] == "const")) {
                 if (v != 0 && settingVariable == false) {
                     errors.addError(lineNumber, "reserved keyword \"" + wordList[v] + "\" used outside of variable declaration", line);
                 } else if (settingVariable == true || v == 0) {
