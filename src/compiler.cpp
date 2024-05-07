@@ -63,7 +63,7 @@ struct Variable {
     std::string scope = "";
 };
 
-bool lexer(std::string fileName, std::vector<std::string> *data) {
+bool lexizer(std::string fileName, std::vector<std::string> *data) {
     std::vector<std::string> dataCopy = *data;
     ErrorHandler errors("lexizer/syntax error", fileName);
 
@@ -304,10 +304,9 @@ bool compile(std::string fileName) {
         while (std::getline(raw, line)) {
             data.push_back(line);
         }
-        bool valid = true;
-        if (!lexer(fileName, &data)) return false;
+        if (!lexizer(fileName, &data)) return false;
         raw.close();
-        return valid;
+        return true;
     } else {
         std::cout << "compilation interrupted\n";
         return false;
