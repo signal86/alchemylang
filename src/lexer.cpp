@@ -9,18 +9,8 @@
 #include <map>
 #include "common.h"
 #include "ErrorHandler.h"
+#include "lexer.h"
 
-
-struct Variable {
-    bool global = false;
-    bool constant = false;
-    bool varUsed = false;
-    bool signal = false;
-    bool initialized = false;
-    std::string variableName = "";
-    std::string value = "";
-    std::string scope = "";
-};
 
 bool lexizer(std::string fileName, std::vector<std::string> *data) {
     std::vector<std::string> dataCopy = *data;
