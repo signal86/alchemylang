@@ -43,7 +43,7 @@ meta { // architecture block
         Default values in search_tags:
         "alchemy", "language",
         */
-    page_background: [color, white] // Background of the page
+    page_background: [color: white] // Background of the page
         /*
         First parameter: type -> color, url
         Second parameter: value -> CSS color or URL for both values

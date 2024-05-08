@@ -227,17 +227,18 @@ bool lexizer(std::string fileName, std::vector<std::string> *data) {
                 int spacing = 0;
                 bool inString = false;
                 for (int v = 0; v < plaintextString.length(); v++) {
-                    if (plaintextString[v] == ' ') spacing++;
-                        
+                    if (plaintextString[v] == ' ') {
+                        spacing++; continue;
+                    }
+                    // pageSettingsInsert["text"] = "Alchemy";
                 }
+                std::cout << changingPageSetting << "\n>" << plaintextString << "<\n\n";
             }
         }
 
         // page_title additions
         if (changingPageSetting == "page_title") {
-            // if (no "text" key) {
-                pageSettingsInsert["text"] = "Alchemy " + std::to_string(VERSION);
-            // }
+            if (pageSettingsInsert.find("text") != pageSettingsInsert.end()) pageSettingsInsert["text"] = "Alchemy " + std::to_string(VERSION); // default for "text"
         }
 
         // adding page settings <-- should work on all page settings if they're set up
