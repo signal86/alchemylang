@@ -220,9 +220,22 @@ bool lexizer(std::string fileName, std::vector<std::string> *data) {
                     if (plaintextString[v] == ' ') {
                         spacing++; continue;
                     }
+                    // string openers
+                    if (plaintextString[v] == '\"' | plaintextString[v] == '\'') {
+                        if (v - 1 > 0) {
+                            if (plaintextString[v - 1] != '\\') inString = !inString;
+                        } else inString = !inString;
+                    }
+                    if (inString) {
+                        // escapes: n, \, ", ', {, },
+                        if (plaintextString[v] == '\\') {
+                            // if (v + 1 < // check if valid (.find(v + 1))
+                        }
+                    }
                     // pageSettingsInsert["text"] = "Alchemy";
                 }
-                std::cout << changingPageSetting << "\n>" << plaintextString << "<\n\n";
+                if (inString) errors.addError(lineNumber, "string left opened", line);
+                std::cout << changingPageSetting << ", inString: " << inString << "\n>" << plaintextString << "<\n\n";
             }
         }
 
