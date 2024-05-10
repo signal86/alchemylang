@@ -1,0 +1,3 @@
+meta {
+    page_title: [text: "pag\ne title text here", signal_period: 5] // Page title is always a signal variable
+}

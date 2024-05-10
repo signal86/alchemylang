@@ -233,8 +233,41 @@ bool lexizer(std::string fileName, std::vector<std::string> *data) {
                                 errors.addError(lineNumber, "escape sequence incompleted", line);
                             } else {
                                 if (plaintextString[v + 1] == 'n') {;
-                                    plaintextString[v + 1] = '\n';
+                                    // plaintextString[v + 1] = '\n';
                                     // plaintextString[v] = ' '; substring
+                                    plaintextString =
+                                        plaintextString.substr(0, v) +
+                                        "\n" +
+                                        plaintextString.substr(v + 2, plaintextString.length() - (v + 2))
+                                    ;
+                                }
+                                else if (plaintextString[v + 1] == '\\') {
+                                    plaintextString =
+                                        plaintextString.substr(0, v) +
+                                        "\\" +
+                                        plaintextString.substr(v + 2, plaintextString.length() - (v + 2))
+                                    ;
+                                }
+                                else if (plaintextString[v + 1] == '\"') {
+                                    plaintextString =
+                                        plaintextString.substr(0, v) +
+                                        "\"" +
+                                        plaintextString.substr(v + 2, plaintextString.length() - (v + 2))
+                                    ;
+                                }
+                                else if (plaintextString[v + 1] == '\'') {
+                                    plaintextString =
+                                        plaintextString.substr(0, v) +
+                                        "\'" +
+                                        plaintextString.substr(v + 2, plaintextString.length() - (v + 2))
+                                    ;
+                                }
+                                else if (plaintextString[v + 1] == 't') {
+                                    plaintextString =
+                                        plaintextString.substr(0, v) +
+                                        "\t" +
+                                        plaintextString.substr(v + 2, plaintextString.length() - (v + 2))
+                                    ;
                                 }
                             }
                         }

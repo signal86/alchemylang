@@ -12,7 +12,7 @@
 // Comments
 /* multi-lines */
 
-// Escape characters: n, \, ", ', {, },
+// Escape characters: n, \, ", ', t
 // " == '
 
 // Reserved keywords: global, var, const, signal, meta, view, create, redirect, on, end, if
