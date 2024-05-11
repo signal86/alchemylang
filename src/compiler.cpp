@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <sstream>
 #include "common.h"
-#include "lexer.cpp"
+#include "lexizer.cpp"
 
 
 bool compile(std::string fileName) {
