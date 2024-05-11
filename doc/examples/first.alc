@@ -38,7 +38,7 @@ meta { // architecture block
         text: "Alchemy {ver}",
         signal_period: 5    // Manages how often the page title should check for changes to variables
         */
-    search_tags: ["foo", "bar"] // No extra settings, just list of search tags. "alchemy" and "language" are all automatically added to search tags
+    search_tags: ["foo", "bar", "foobar"] // No extra settings, just list of search tags. "alchemy" and "language" are all automatically added to search tags
         /*
         Default values in search_tags:
         "alchemy", "language",

@@ -210,144 +210,194 @@ bool lexizer(std::string fileName, std::vector<std::string> *data) {
         // adding variables to scope
         if (variableWork.variableName != "") variableScope.push_back(variableWork);
 
-        // semi-tokenizing settings (thisll end up embedding the token maps)
-        if (changingPageSetting != "") {
+        // semi-tokenizing settings
+        if (changingPageSetting != "" && changingPageSetting != "search_tags") {
             if (plaintextString[0] == '[' && plaintextString.substr(plaintextString.length() - 1, 1) == "]") {
                 plaintextString = plaintextString.substr(1, plaintextString.length() - 2);
+                // std::cout << changingPageSetting << "\n" << plaintextString << "\n";
                 int spacing = 0;
                 bool inString = false;
                 bool inKV = false;
-                std::map<std::string, std::string> kv;
+                // if a setting is configured with no , at the end
+                int startExit = 0;
                 for (int v = 0; v < plaintextString.length(); v++) {
                     if (plaintextString[v] == ' ') {
                         spacing++; continue;
                     }
-                    
-                    // **TODO**
-                    // **TODO**
-                    // **TODO**
-                    // redo so it separates into key value and then checks values for escape characters and string stuff after
 
                     // string openers
-                    // if (plaintextString[v] == '\"' | plaintextString[v] == '\'') {
-                    //     if (v - 1 > 0) {
-                    //         if (plaintextString[v - 1] != '\\') inString = !inString;
-                    //     } else inString = !inString;
-                    // }
-                    // escapes: n, \, ", ', {, },
-                    // if (inString) {
-                    //     if (plaintextString[v] == '\\') {
-                    //         if (v >= plaintextString.length()) {
-                    //             errors.addError(lineNumber, "escape sequence incompleted", line);
-                    //         } else {
-                    //             if (plaintextString[v + 1] == 'n') {;
-                    //                 // plaintextString[v + 1] = '\n';
-                    //                 // plaintextString[v] = ' '; substring
-                    //                 plaintextString =
-                    //                     plaintextString.substr(0, v) +
-                    //                     "\n" +
-                    //                     plaintextString.substr(v + 2, plaintextString.length() - (v + 2))
-                    //                 ;
-                    //             }
-                    //             else if (plaintextString[v + 1] == '\\') {
-                    //                 plaintextString =
-                    //                     plaintextString.substr(0, v) +
-                    //                     "\\" +
-                    //                     plaintextString.substr(v + 2, plaintextString.length() - (v + 2))
-                    //                 ;
-                    //             }
-                    //             else if (plaintextString[v + 1] == '\"') {
-                    //                 plaintextString =
-                    //                     plaintextString.substr(0, v) +
-                    //                     "\"" +
-                    //                     plaintextString.substr(v + 2, plaintextString.length() - (v + 2))
-                    //                 ;
-                    //             }
-                    //             else if (plaintextString[v + 1] == '\'') {
-                    //                 plaintextString =
-                    //                     plaintextString.substr(0, v) +
-                    //                     "\'" +
-                    //                     plaintextString.substr(v + 2, plaintextString.length() - (v + 2))
-                    //                 ;
-                    //             }
-                    //             else if (plaintextString[v + 1] == 't') {
-                    //                 plaintextString =
-                    //                     plaintextString.substr(0, v) +
-                    //                     "\t" +
-                    //                     plaintextString.substr(v + 2, plaintextString.length() - (v + 2))
-                    //                 ;
-                    //             }
-                    //         }
-                    //     }
-                    // }
-                    // not in string
-                    if (1) {
-                        // key value separator
-                        int start = 0;
-                        if (plaintextString[v] == ':') {
-                            int parsedPairs = 0;
-                            bool inString2 = false;
-                            for (int j = 0; j < v; j++) {
-                                if (plaintextString[j] == '\"' | plaintextString[j] == '\'') {
-                                    if (j - 1 > 0) {
-                                        if (plaintextString[j - 1] != '\\') inString2 = !inString2;
-                                    } else inString2 = !inString2;
-                                }
-                                if (!inString2) {
-                                    if (plaintextString[j] == ':' || plaintextString[j] == ',') {
-                                        parsedPairs++;
-                                        start = j + 1;
-                                    }
-                                }
-                            }
-                            if (parsedPairs % 2 != 0) errors.addError(lineNumber, "setting left open", line);
-                            else inKV = true;
-                        }
-                        else if (plaintextString[v] == ',' && !inKV) errors.addError(lineNumber, "setting unopened", line);
-                        else if (plaintextString[v] == ',' && inKV) {
-                            bool inString2 = false;
-                            std::string key = "";
-                            std::string value = "";
-                            bool settingKey = true;
-                            for (int j = start; j < plaintextString.length(); j++) {
-                                if (plaintextString[j] == '\"' | plaintextString[j] == '\'') {
-                                    if (j - 1 > 0) {
-                                        if (plaintextString[j - 1] != '\\') inString2 = !inString2;
-                                    } else inString2 = !inString2;
-                                }
-                                if (!inString2) {
-                                    if (plaintextString[j] == ':') {
-                                        settingKey = false;
-                                        while (plaintextString[j] == ':' || plaintextString[j] == ' ') j++;
-                                    }
-                                    if (plaintextString[j] == ',') {
-                                        inKV = false;
-                                        break;
-                                    }
-                                }
-                                if (settingKey) key += plaintextString[j];
-                                else value += plaintextString[j];
-                            }
-                            kv[key] = value;
-                            std::cout << key << ":" << ">" << value << "<\n";
-                        }
-                        // else std::cout << "idk >" << plaintextString[v] << "<\n";
-                        // std::cout << "kv: ";
-                        // for (std::map<std::string, std::string>::iterator it = kv.begin(); it != kv.end(); it++) {
-                        //     std::cout << it->first << ":" << it->second << " || ";
-                        // } std::cout << std::endl;
+                    if (plaintextString[v] == '\"' | plaintextString[v] == '\'') {
+                        if (v - 1 > 0) {
+                            if (plaintextString[v - 1] != '\\') inString = !inString;
+                        } else inString = !inString;
                     }
+                    // key value separator
+                    // std::cout << plaintextString[v] << " == " << inString << "\n";
+                    if (inString) plaintextString = scanEscapeCharacters(errors, lineNumber, line, plaintextString, v);
+                    int start = 0;
+                    if (plaintextString[v] == ':' && !inString) {
+                        int parsedPairs = 0;
+                        bool inString2 = false;
+                        for (int j = 0; j < v; j++) {
+                            if (plaintextString[j] == '\"' | plaintextString[j] == '\'') {
+                                if (j - 1 > 0) {
+                                    if (plaintextString[j - 1] != '\\') inString2 = !inString2;
+                                } else inString2 = !inString2;
+                            }
+                            if (!inString2) {
+                                if (plaintextString[j] == ':' || plaintextString[j] == ',') {
+                                    parsedPairs++;
+                                    if (j + 1 > plaintextString.length()) errors.addError(lineNumber, "setting left open", line);
+                                    else {
+                                        start = j + 1;
+                                        startExit = j + 1;
+                                        while (plaintextString[start] == ' ' || plaintextString[start] == ',') {
+                                            start++;
+                                            startExit++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // std::cout << start << "\n";
+                        if (parsedPairs % 2 != 0) errors.addError(lineNumber, "setting left open", line);
+                        else inKV = true;
+                        // std::cout << changingPageSetting << "\n" << inKV << "\n";
+                    }
+                    // if (inKV) std::cout << plaintextString[v] << "\n";
+                    else if (plaintextString[v] == ',' && !inKV && !inString) errors.addError(lineNumber, "setting unopened", line);
+                    else if (plaintextString[v] == ',' && inKV && !inString) {
+                        std::string key = "";
+                        std::string value = "";
+                        bool settingKey = true;
+                        bool inString2 = false;
+                        for (int j = start; j < plaintextString.length(); j++) {
+                            if (plaintextString[j] == '\"' | plaintextString[j] == '\'') {
+                                if (j - 1 > 0) {
+                                    if (plaintextString[j - 1] != '\\') inString2 = !inString2;
+                                } else inString2 = !inString2;
+                            }
+                            // std::cout << ">" << plaintextString[j] << "<" << " // inString2 == " << inString2 << "\n";
+                            if (!inString2) {
+                                if (plaintextString[j] == ':') {
+                                    settingKey = false;
+                                    j++;
+                                }
+                                if (plaintextString[j] == ',') {
+                                    inKV = false;
+                                    j = plaintextString.length();
+                                }
+                            }
+                            if (settingKey) key += plaintextString[j];
+                            else value += plaintextString[j];
+                        }
+                        // trim spaces from start and end of value
+                        int index = 0;
+                        while (value[index] == ' ') {
+                            index++;
+                            value = value.substr(index);
+                        }
+                        value = value.substr(0, value.length() - 1);
+                        pageSettingsInsert[key] = value;
+                        // std::cout << key << ":" << value << "\n";
+                    }
+                    // else std::cout << "idk >" << plaintextString[v] << "<\n";
+                    // std::cout << "kv: ";
+                    // for (std::map<std::string, std::string>::iterator it = kv.begin(); it != kv.end(); it++) {
+                    //     std::cout << it->first << ":" << it->second << " || ";
+                    // } std::cout << std::endl;
                 }
                 // finalize key values
+                if (inKV) {
+                    std::string key = "";
+                    std::string value = "";
+                    bool settingKey = true;
+                    bool inString2 = false;
+                    for (int j = startExit; j < plaintextString.length(); j++) {
+                        if (plaintextString[j] == '\"' | plaintextString[j] == '\'') {
+                            if (j - 1 > 0) {
+                                if (plaintextString[j - 1] != '\\') inString2 = !inString2;
+                            } else inString2 = !inString2;
+                        }
+                        // std::cout << ">" << plaintextString[j] << "<" << " // inString2 == " << inString2 << "\n";
+                        if (!inString2) {
+                            if (plaintextString[j] == ':') {
+                                settingKey = false;
+                                j++;
+                            }
+                            if (plaintextString[j] == ',') {
+                                inKV = false;
+                                j = plaintextString.length();
+                            }
+                        }
+                        if (settingKey) key += plaintextString[j];
+                        else value += plaintextString[j];
+                    }
+                    // trim spaces from start and end of value
+                    int index = 0;
+                    while (value[index] == ' ') {
+                        index++;
+                        value = value.substr(index);
+                    }
+                    index = value.length() - 1;
+                    while (value[index] == ' ') {
+                        index--;
+                        value = value.substr(0, index);
+                    }
+                    pageSettingsInsert[key] = value;
+                }
 
                 if (inString) errors.addError(lineNumber, "string left opened", line);
-                std::cout << changingPageSetting << ", inString: " << inString << "\n>" << plaintextString << "<\n\n";
+                // std::cout << changingPageSetting << ", inString: " << inString << "\n>" << plaintextString << "<\n\n";
+            }
+        }
+
+        // because search_tags has no keys
+        else if (changingPageSetting == "search_tags") {
+            if (plaintextString[0] == '[' && plaintextString.substr(plaintextString.length() - 1, 1) == "]") {
+                plaintextString = plaintextString.substr(1, plaintextString.length() - 2);
+                std::cout << "search tags: " << plaintextString << "\n";
+                bool inString2 = false;
+                int key = 0;
+                int valueStart = 0;
+                for (int v = 0; v < plaintextString.length(); v++) {
+                    if (plaintextString[v] == '\"' | plaintextString[v] == '\'') {
+                        if (v - 1 > 0) {
+                            if (plaintextString[v - 1] != '\\') inString2 = !inString2;
+                        } else inString2 = !inString2;
+                    }
+                    if (inString2) plaintextString = scanEscapeCharacters(errors, lineNumber, line, plaintextString, v);
+                    else {
+                        if (plaintextString[v] != ',' && plaintextString[v] != ' ' && plaintextString[v] != '\"' && plaintextString[v] != '\'') errors.addError(lineNumber, "invalid token", line);
+                        else if (plaintextString[v] == ',') {
+                            std::string value = "";
+                            for (int j = valueStart; j < v; j++) {
+                                value += plaintextString[j];
+                            }
+                            if (v + 1 > plaintextString.length() - 1) errors.addError(lineNumber, "setting incomplete / overflow", line);
+                            else valueStart = v + 1;
+                            pageSettingsInsert[std::to_string(key)] = value;
+                            key++;
+                        }
+                    }
+                }
+                std::string value = "";
+                for (int j = valueStart; j < plaintextString.length() - 1; j++) {
+                    value += plaintextString[j];
+                }
+                pageSettingsInsert[std::to_string(key)] = value;
             }
         }
 
         // page_title additions
         if (changingPageSetting == "page_title") {
-            if (pageSettingsInsert.find("text") != pageSettingsInsert.end()) pageSettingsInsert["text"] = "Alchemy " + std::to_string(VERSION); // default for "text"
+            // default for "text"
+            if (pageSettingsInsert.find("text") == pageSettingsInsert.end()) {
+                std::string version = std::to_string(VERSION);
+                version.erase(version.find_last_not_of('0') + 1, std::string::npos);
+                version.erase(version.find_last_not_of('.') + 1, std::string::npos);
+                pageSettingsInsert["text"] = "Alchemy " + version;
+            }
         }
 
         // adding page settings <-- should work on all page settings if they're set up
@@ -359,6 +409,16 @@ bool lexizer(std::string fileName, std::vector<std::string> *data) {
         // }
         // // dump lines to terminal
         // std::cout << "line " << lineNumber << ": " << *i << "\n";
+    }
+
+    // for (std::map<std::string, std::string>::iterator it = pageSettings.begin(); it != pageSettings.end(); it++) {
+    //     std::cout << it->first << ":" << it->second << " || ";
+    // } std::cout << std::endl;
+    for (auto const& x : pageSettings) {
+        std::cout << x.first << "\n";
+        for (auto it = x.second.begin(); it != x.second.end(); it++) {
+            std::cout << it->first << ":" << it->second << "\n";
+        } std::cout << "\n";
     }
 
     return errors.catcher();
