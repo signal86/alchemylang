@@ -400,6 +400,8 @@ bool lexizer(std::string fileName, std::vector<std::string> *data) {
             }
         }
 
+        // clean up page settings insert here, removing quotes and spaces and such
+
         // adding page settings <-- should work on all page settings if they're set up
         if (changingPageSetting != "") pageSettings[changingPageSetting] = pageSettingsInsert;
 
