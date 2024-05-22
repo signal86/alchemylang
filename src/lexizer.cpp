@@ -416,12 +416,13 @@ bool lexizer(std::string fileName, std::vector<std::string> *data) {
     // for (std::map<std::string, std::string>::iterator it = pageSettings.begin(); it != pageSettings.end(); it++) {
     //     std::cout << it->first << ":" << it->second << " || ";
     // } std::cout << std::endl;
-    for (auto const& x : pageSettings) {
-        std::cout << x.first << "\n";
-        for (auto it = x.second.begin(); it != x.second.end(); it++) {
-            std::cout << it->first << ":" << it->second << "\n";
-        } std::cout << "\n";
-    }
+
+    // for (auto const& x : pageSettings) {
+    //     std::cout << x.first << "\n";
+    //     for (auto it = x.second.begin(); it != x.second.end(); it++) {
+    //         std::cout << it->first << ":" << it->second << "\n";
+    //     } std::cout << "\n";
+    // }
 
     return errors.catcher();
 }
