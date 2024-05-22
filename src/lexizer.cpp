@@ -24,7 +24,6 @@ bool lexizer(std::string fileName, std::vector<std::string> *data) {
         "meta",
         "view",
         "create",
-        "redirect",
         "on",
         "end",
         "if"
@@ -168,6 +167,14 @@ bool lexizer(std::string fileName, std::vector<std::string> *data) {
                 if (changingPageSetting == "") {
                     changingPageSetting = wordList[v].substr(0, wordList[v].length() - 1);
                     plaintext = true;
+                }
+            }
+
+            else if (architecture == "components" && wordList[v] == "create") {
+                if (v != 0) errors.addError(lineNumber, "create is a reserved keyword", line);
+                else {
+                    v = wordList.size();
+
                 }
             }
 
