@@ -174,7 +174,17 @@ bool lexizer(std::string fileName, std::vector<std::string> *data) {
                 if (v != 0) errors.addError(lineNumber, "create is a reserved keyword", line);
                 else {
                     v = wordList.size();
-
+                    std::string varName;
+                    std::vector<std::string> varParameters;
+                    varName = wordList[1];
+                    if (wordList.size() > 2) {
+                        if (wordList[2] != "=") errors.addError(lineNumber, "variable name cannot be greater than one word", line);
+                        else {
+                            for (int j = 3; j < wordList.size(); j++) {
+                                varParameters.push_back(wordList[j]);
+                            }
+                        }
+                    }
                 }
             }
 

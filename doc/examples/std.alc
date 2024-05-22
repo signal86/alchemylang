@@ -3,7 +3,7 @@
 components {
     create text = textIn // textIn being a parameter
         html
-            <p style="{mainOpt}">{textIn}</p>
+            <p style="{mainOpt}">{arg1}</p>
         end
         modifiers
             underline <arg1>
@@ -12,7 +12,9 @@ components {
                         mainOpt += text-decoration: underline;
                     elif arg1 == false
                         mainOpt += text-decoration: none;
-                    end
+                    // else
+                        // do something
+                    end // end only goes at the end of all conditionals
                 end
                 listeners // fires with "on"s, element id is immediately set to "ID" variable
                     if arg1 == true
